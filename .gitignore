@@ -127,7 +127,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+<<<<<<< HEAD
 kwlstr/
+=======
+>>>>>>> f33498379b351af9b239a1552ca8a4527517fe61
 
 # Spyder project settings
 .spyderproject
