@@ -55,35 +55,48 @@ def search_button_click():
     query4 = entry4.get()
     query5 = entry5.get()
 
-    # Open 5 incognito tabs
-    drivers = [open_chrome_incognito() for _ in range(5)]
+    # Combine queries into a list
+    queries = [query1, query2, query3, query4, query5]
 
-    # Search for each query in each tab
-    for i, (driver, query) in enumerate(zip(drivers, [query1, query2, query3, query4, query5]), start=1):
-        try:
-            driver.execute_script("window.open('about:blank', '_blank');")
-            driver.switch_to.window(driver.window_handles[-1])
-            driver = search_google(driver, query)
-        except Exception as e:
-            print(f"Error occurred while processing tab {i}: {e}")
+    # Open incognito tabs only for non-empty queries
+    drivers = []
+    for query in queries:
+        if query:  # Check if the query is not empty
+            drivers.append(open_chrome_incognito())
+        else:
+            drivers.append(None)  # Placeholder for empty query
+
+    # Search for each non-empty query in each tab
+    for i, (driver, query) in enumerate(zip(drivers, queries), start=1):
+        if driver:  # Check if the driver exists (for non-empty queries)
+            try:
+                driver.execute_script("window.open('about:blank', '_blank');")
+                driver.switch_to.window(driver.window_handles[-1])
+                driver = search_google(driver, query)
+            except Exception as e:
+                print(f"Error occurred while processing tab {i}: {e}")
 
     # Extract and display results from each tab
     results = []
     for driver in drivers:
-        try:
-            results.append(extract_results(driver))
-        except Exception as e:
-            print(f"Error occurred while extracting results: {e}")
+        if driver:  # Check if the driver exists (for non-empty queries)
+            try:
+                results.append(extract_results(driver))
+            except Exception as e:
+                print(f"Error occurred while extracting results: {e}")
+                results.append([])  # Append empty list for failed queries
 
     # Display results in a table
-    for i in range(10):
-        values = [results[j][i] if len(results[j]) > i else "" for j in range(5)]
+    max_results = max(len(result) for result in results)  # Get the maximum number of results
+    for i in range(max_results):
+        values = [results[j][i] if j < len(results) and i < len(results[j]) else "" for j in range(5)]
         treeview.insert('', 'end', values=values)
 
 
 # Creating UI
 root = tk.Tk()
-root.title("Google Search Results")
+root.iconbitmap("icon.ico")
+root.title("Keyword Lister")
 
 frame = tk.Frame(root)
 frame.pack(pady=10)
